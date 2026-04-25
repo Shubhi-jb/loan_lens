@@ -24,7 +24,7 @@ class AnalysisProvider with ChangeNotifier {
   final FlutterTts _flutterTts = FlutterTts();
   
   // SECURE PROXY: Key is managed by Cloudflare Secret, never sent to the client.
-  final String _proxyUrl = 'https://loanlens-proxy.shubhijb21.workers.dev/';
+  final String _proxyUrl = 'https://loanlens-proxy.shubhijb21.workers.dev';
   
   AnalysisStatus _status = AnalysisStatus.idle;
   String? _error;
@@ -213,8 +213,8 @@ class AnalysisProvider with ChangeNotifier {
             {"text": prompt},
             if (imageBytes != null)
               {
-                "inline_data": {
-                  "mime_type": "image/jpeg",
+                "inlineData": {
+                  "mimeType": "image/jpeg",
                   "data": base64Encode(imageBytes)
                 }
               }
@@ -222,7 +222,7 @@ class AnalysisProvider with ChangeNotifier {
         }
       ],
       // System instructions are now passed in the body since we aren't using the SDK's systemInstruction param
-      "system_instruction": {
+      "systemInstruction": {
         "parts": [
           {
             "text": "Role: You are the LoanLens Guardian, an expert in Indian Digital Lending Compliance (RBI 2025/2026) and Fairness Analysis. "
@@ -236,7 +236,7 @@ class AnalysisProvider with ChangeNotifier {
         ]
       },
       "generationConfig": {
-        "response_mime_type": "application/json"
+        "responseMimeType": "application/json"
       }
     };
 
