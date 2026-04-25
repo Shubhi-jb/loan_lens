@@ -246,11 +246,18 @@ class AnalysisProvider with ChangeNotifier {
       }
     };
 
-    final response = await http.post(
-      Uri.parse(_proxyUrl),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(body),
-    ).timeout(const Duration(seconds: 45));
+    final client = http.Client();
+    final request = http.Request('POST', Uri.parse(_proxyUrl));
+    request.headers.addAll({"Content-Type": "application/json"});
+    request.body = jsonEncode(body);
+    request.followRedirects = false; // PREVENT POST-to-GET HIJACK
+
+    final streamedResponse = await client.send(request).timeout(const Duration(seconds: 45));
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode >= 300 && response.statusCode < 400) {
+      throw Exception('Redirect detected! The Proxy URL is likely incorrect. Use the exact URL from Cloudflare dashboard.');
+    }
 
     if (response.statusCode != 200) {
       throw Exception('Proxy Error (${response.statusCode}): ${response.body}');
