@@ -268,7 +268,13 @@ class AnalysisProvider with ChangeNotifier {
       throw Exception('Received an empty response from the AI model.');
     }
 
-    final Map<String, dynamic> parsedData = jsonDecode(jsonOutput);
+    // CLEANER: Remove markdown backticks if present
+    String cleanJson = jsonOutput.trim();
+    if (cleanJson.startsWith('```')) {
+      cleanJson = cleanJson.replaceAll(RegExp(r'^```json\s*|```$'), '').trim();
+    }
+
+    final Map<String, dynamic> parsedData = jsonDecode(cleanJson);
     
     int riskScore = parsedData['risk_score'] ?? 10;
     bool isPredatory = parsedData['is_predatory'] ?? false;
@@ -287,28 +293,28 @@ class AnalysisProvider with ChangeNotifier {
     _riskScore = riskScore;
     _score = (riskScore / 10.0).clamp(0.0, 1.0);
 
-final Map<String, dynamic> translationsRaw = parsedData['ui_translations'] ?? {};
-_uiTranslations = {
-  'safe_label': translationsRaw['safe_label']?.toString() ?? 'Safe',
-  'safe_msg': translationsRaw['safe_msg']?.toString() ?? 'Safe to proceed',
-  'mod_label': translationsRaw['mod_label']?.toString() ?? 'Moderate Risk',
-  'mod_msg': translationsRaw['mod_msg']?.toString() ?? 'Proceed with caution',
-  'high_label': translationsRaw['high_label']?.toString() ?? 'High Risk / Predatory',
-  'high_msg': translationsRaw['high_msg']?.toString() ?? 'Avoid this loan',
-  'hdr_vio': translationsRaw['hdr_vio']?.toString() ?? 'RBI VIOLATIONS',
-  'hdr_warn': translationsRaw['hdr_warn']?.toString() ?? 'MINOR WARNINGS',
-  'hdr_bias': translationsRaw['hdr_bias']?.toString() ?? 'ALGORITHMIC BIAS',
-  'hdr_action': translationsRaw['hdr_action']?.toString() ?? 'ACTION PLAN',
-  'hdr_pred': translationsRaw['hdr_pred']?.toString() ?? 'HIGH RISK / PREDATORY',
-  'hdr_scorecard': translationsRaw['hdr_scorecard']?.toString() ?? 'Fairness Scorecard',
-  'hdr_detailed': translationsRaw['hdr_detailed']?.toString() ?? 'Detailed Findings',
-  'btn_scan': translationsRaw['btn_scan']?.toString() ?? 'Scan Another Document',
-  'btn_rbi': translationsRaw['btn_rbi']?.toString() ?? 'File RBI Complaint',
-  'lbl_detected': translationsRaw['lbl_detected']?.toString() ?? 'Detected:',
-  'lbl_fairness': translationsRaw['lbl_fairness']?.toString() ?? 'Fairness',
-};
+    final Map<String, dynamic> translationsRaw = parsedData['ui_translations'] ?? {};
+    _uiTranslations = {
+      'safe_label': translationsRaw['safe_label']?.toString() ?? 'Safe',
+      'safe_msg': translationsRaw['safe_msg']?.toString() ?? 'Safe to proceed',
+      'mod_label': translationsRaw['mod_label']?.toString() ?? 'Moderate Risk',
+      'mod_msg': translationsRaw['mod_msg']?.toString() ?? 'Proceed with caution',
+      'high_label': translationsRaw['high_label']?.toString() ?? 'High Risk / Predatory',
+      'high_msg': translationsRaw['high_msg']?.toString() ?? 'Avoid this loan',
+      'hdr_vio': translationsRaw['hdr_vio']?.toString() ?? 'RBI VIOLATIONS',
+      'hdr_warn': translationsRaw['hdr_warn']?.toString() ?? 'MINOR WARNINGS',
+      'hdr_bias': translationsRaw['hdr_bias']?.toString() ?? 'ALGORITHMIC BIAS',
+      'hdr_action': translationsRaw['hdr_action']?.toString() ?? 'ACTION PLAN',
+      'hdr_pred': translationsRaw['hdr_pred']?.toString() ?? 'HIGH RISK / PREDATORY',
+      'hdr_scorecard': translationsRaw['hdr_scorecard']?.toString() ?? 'Fairness Scorecard',
+      'hdr_detailed': translationsRaw['hdr_detailed']?.toString() ?? 'Detailed Findings',
+      'btn_scan': translationsRaw['btn_scan']?.toString() ?? 'Scan Another Document',
+      'btn_rbi': translationsRaw['btn_rbi']?.toString() ?? 'File RBI Complaint',
+      'lbl_detected': translationsRaw['lbl_detected']?.toString() ?? 'Detected:',
+      'lbl_fairness': translationsRaw['lbl_fairness']?.toString() ?? 'Fairness',
+    };
 
-_findings = _mapGuardianJsonToFindings(parsedData);
+    _findings = _mapGuardianJsonToFindings(parsedData);
 
     if (userOptIn) {
       try {
@@ -395,11 +401,10 @@ _findings = _mapGuardianJsonToFindings(parsedData);
   }
 
   Future<void> speakCurrentVerdict(String languageName) async {
-    if (_findings.isEmpty) return;
+    if (_parsedResult == null) return;
     try {
-      // Find the verdict finding (usually the first one if danger)
-      final finding = _findings.firstWhere((f) => f.term == (_uiTranslations['hdr_pred'] ?? 'HIGH RISK / PREDATORY') || f.term == (_uiTranslations['safe_label'] ?? 'Safe'), orElse: () => _findings.first);
-      String textToSpeak = finding.description;
+      final Map<String, dynamic> data = jsonDecode(_parsedResult!);
+      String textToSpeak = data['verdict_vernacular'] ?? 'Analysis complete.';
       
       String langCode = 'en-IN';
       switch(languageName) {
