@@ -1,0 +1,43 @@
+# --- SECRETS (NEVER COMMIT THESE) ---
+.env
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# --- LOCAL MACHINE FILES ---
+android/local.properties
+android/.gradle/
+android/app/.cxx/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/ephemeral/
+
+# --- BUILD OUTPUT ---
+**/build/
+*.apk
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+*.iml
+
+# --- FLUTTER GENERATED ---
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+
+# --- PROJECT-SPECIFIC JUNK ---
+.gemini/
+LoanLens_Snapshot_PreGit_Final.txt
+LoanLens_Snapshot_final.txt
+analysis.txt
+analysis_output.txt
+build_error.txt
+build_log.txt
+build_output.txt
+*.backup.dart
+*.bak
+*.txt

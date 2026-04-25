@@ -1,0 +1,18 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      // Default deny for all other collections read/write
+      allow read, write: if false;
+    }
+    
+    // Explicit opt-in schema for our national lending database.
+    // Zero-trust applied: only creation allowed if format matches exactly.
+    match /anonymised_intelligence/{docId} {
+      allow create: if request.resource.data.keys().hasAll(['app_name', 'bias_pattern_type', 'interest_rate_deviation', 'user_opt_in']) &&
+                    request.resource.data.user_opt_in == true;
+      allow read, update, delete: if false;
+    }
+  }
+}
